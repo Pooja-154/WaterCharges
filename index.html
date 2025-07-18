@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Charges Calculator</title>
+    <style>
+        body {
+            font-family: Garamond, serif;
+            background-color: #e0f7fa;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+        input, button {
+            width: 95%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #90caf9;
+            display: block;
+        }
+        button {
+            background-color: #039be5;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0288d1;
+        }
+        .result-container {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .heading {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #01579b;
+        }
+        .subheading {
+            text-align: center;
+            font-size: 16px;
+            color: #0277bd;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="heading">Sri Mansion</div>
+        <div class="subheading">Commercial Water Charges Calculator</div>
+        <label for="prevReading">Previous Reading (Comm):</label>
+        <input type="text" id="prevReading" placeholder="Enter previous reading" inputmode="numeric">
+        
+        <label for="presentReading">Present Reading (Comm):</label>
+        <input type="text" id="presentReading" placeholder="Enter present reading" inputmode="numeric">
+        
+        <label for="totalConsumption">Total Consumption (From Bill):</label>
+        <input type="text" id="totalConsumption" placeholder="Enter total consumption" inputmode="numeric">
+        
+        <label for="otherCharges">Other Charges (From Bill):</label>
+        <input type="text" id="otherCharges" placeholder="Enter Other Charges" inputmode="numeric">
+
+        <label for="electricityBill">Electricity Bill (Rs.):</label>
+        <input type="text" id="electricityBill" placeholder="Enter electricity bill" inputmode="numeric">
+        
+        <button onclick="calculateCharges()">Calculate</button>
+
+        <button onclick="saveToGoogleSheets()">Save to Google Sheets</button>
+        <a href="https://docs.google.com/spreadsheets/d/1D526-t90VXdkORhPUkrjLWpxWgznv4_9bMywrkwi-48/edit?gid=0#gid=0" target="_blank">
+            <button>Open Google Sheets</button>
+        </a>
+    </div>
+
+    <div class="result-container">
+        <h3>Domestic Water Charges</h3>
+        <div class='result-item'><span>Water Bill:</span> <span id='domesticWaterBill'></span></div>
+        <div class='result-item'><span>Electricity Bill:</span> <span id='electricityCharges'></span></div>
+        <div class='result-item'><span>Per House:</span> <span id='perHouse'></span></div>
+    </div>
+    
+    <div class="result-container">
+        <h3>Commercial Water Charges</h3>
+        <div class='result-item'><span>Water Bill:</span> <span id='commercialWaterBill'></span></div>
+        <div class='result-item'><span>Motor Bill:</span> <span id='motorBill'></span></div>
+        <div class='result-item'><span>Total:</span> <span id='totalPayable'></span></div>
+    </div>
+
+    <script>
+        function calculateCharges() {
+            let prevReading = parseFloat(document.getElementById("prevReading").value);
+            let presentReading = parseFloat(document.getElementById("presentReading").value);
+            let totalConsumption = parseFloat(document.getElementById("totalConsumption").value);
+            let electricityBill = parseFloat(document.getElementById("electricityBill").value);
+            let otherCharges = parseFloat(document.getElementById("otherCharges").value);
+
+            if (isNaN(prevReading) || isNaN(presentReading) || isNaN(totalConsumption) || isNaN(electricityBill) || prevReading >= presentReading) {
+                alert("Please enter valid readings.");
+                return;
+            }
+            
+            let commercialConsumption = presentReading - prevReading;
+            let domesticConsumption = totalConsumption - commercialConsumption;
+            let motorBill = electricityBill / 6;
+            let electricityCharges = (electricityBill * 5) / 6;
+            let perHouse = 0;
+            
+            let commercialWaterBill = 0;
+            let domesticWaterBill = 0;
+
+            if (commercialConsumption < 10000){
+                commercialWaterBill = (commercialConsumption * 60 ) / 1000;
+            }
+            else if (commercialConsumption < 25000){
+                commercialWaterBill = (((commercialConsumption-10000)*70) + (10000 * 60 )) / 1000;
+            }
+            else if (commercialConsumption < 50000){
+                commercialWaterBill = (((commercialConsumption-25000)*80) +(15000 * 70 )+(10000 * 60 )) / 1000;
+            }
+            else if (commercialConsumption < 75000){
+                commercialWaterBill = (((commercialConsumption-50000)*95) + (25000 * 80)+ (15000 * 70)+ (10000 * 60 )) / 1000;
+            }
+            else if (commercialConsumption < 100000){
+                commercialWaterBill = (((commercialConsumption-75000)*98) + (25000 * 95 )+ (25000 * 80)+ (15000 * 70)+ (10000 * 60 )) / 1000;
+            }
+            else {
+                commercialWaterBill = (((commercialConsumption-100000)*99) +(75000 *98) + (25000 * 95 )+ (25000 * 80)+ (15000 * 70)+ (10000 * 60 )) / 1000;
+            }
+
+            if (domesticConsumption < 8000){
+                domesticWaterBill = (domesticConsumption * 8.5 ) / 1000;
+            }
+            else if (domesticConsumption < 25000){
+                domesticWaterBill = (((domesticConsumption-8000)*14) + (80000 * 8.5 )) / 1000;
+            }
+            else if (domesticConsumption < 50000){
+                domesticWaterBill = (((domesticConsumption-25000)*34) +(17000 * 14 )+(8000 * 8.5 )) / 1000;
+            }
+            else {
+                domesticWaterBill = (((domesticConsumption-50000)*55) + (25000 * 34)+ (17000 * 14)+ (8000 * 8.5 )) / 1000;
+            }
+            
+            commercialWaterBill *= 1.3125; // Sanitary Charges
+            domesticWaterBill *= 1.3125;
+
+            otherCharges = otherCharges + 400; // Meter + borewell Charges
+            commercialWaterBill += (otherCharges/6);
+            domesticWaterBill += otherCharges * (5/6);
+
+            perHouse = (domesticWaterBill + electricityCharges ) / 5;
+            
+
+            document.getElementById("commercialWaterBill").innerText = `Rs. ${commercialWaterBill.toFixed()}`;
+            document.getElementById("motorBill").innerText = `Rs. ${motorBill.toFixed()}`;
+            document.getElementById("totalPayable").innerText = `Rs. ${(commercialWaterBill + motorBill).toFixed()}`;
+            
+            document.getElementById("domesticWaterBill").innerText = `Rs. ${domesticWaterBill.toFixed()}`;
+            document.getElementById("electricityCharges").innerText = `Rs. ${electricityCharges.toFixed()}`;
+            document.getElementById("perHouse").innerText = `Rs. ${perHouse.toFixed()}`;
+        }
+
+        function saveToGoogleSheets() {
+            console.log("saveToGoogleSheets() function called!");
+            let data = {
+                totalConsumption: document.getElementById("totalConsumption").value,
+                shopReading: document.getElementById("presentReading").value,
+                commercialWaterBill: parseFloat(document.getElementById("commercialWaterBill").innerText.replace('Rs. ', '')),
+                domesticWaterBill: parseFloat(document.getElementById("domesticWaterBill").innerText.replace('Rs. ', '')),
+                perHouseCharges: parseFloat(document.getElementById("perHouse").innerText.replace('Rs. ', '')),
+                electricityBill: document.getElementById("electricityBill").value
+            };
+
+            fetch("https://script.google.com/macros/s/AKfycbyuGJWvuPoNgZMWXwUI478HHs3BVUCYvD2KycDDz2yanMRxRvArUB2TKi0isK3If8Oa/exec", {
+                method: "POST",
+                mode: "no-cors", // Avoids CORS issues
+                body: JSON.stringify(data),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.text())
+            .then(data => alert("Data Saved Successfully!"))
+            .catch(error => console.error("Error:", error));
+        }
+        
+    </script>
+</body>
+</html>
